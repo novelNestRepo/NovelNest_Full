@@ -41,7 +41,10 @@ class ApiClient {
       ...(options.headers as Record<string, string>),
     };
 
-    const token = this.token;
+    // Always get the freshest token from Supabase instead of stale localStorage
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token || this.token; // Fallback to legacy token if needed
+
     if (token) {
       headers.Authorization = `Bearer ${token}`;
     }
