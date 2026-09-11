@@ -71,6 +71,25 @@ class ApiClient {
     if (data.session) {
       this.setToken(data.session.access_token);
     }
+
+    // Sync role from auth metadata to public.users on every login
+    // This fixes accounts that registered as admin but got role='user' in the DB
+    if (data.user) {
+      const metaRole = data.user.user_metadata?.role;
+      const metaName = data.user.user_metadata?.name;
+      if (metaRole) {
+        await fetch('/api/auth/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: data.user.id,
+            email: data.user.email,
+            name: metaName,
+            role: metaRole,
+          }),
+        }).catch(() => {}); // Don't block login if sync fails
+      }
+    }
     
     return {
       user: data.user,
@@ -88,6 +107,23 @@ class ApiClient {
       }
     });
     if (error) throw new Error(error.message);
+
+    // Sync the user to public.users with the correct role
+    // The Supabase trigger may create the row with role='user' by default,
+    // so we explicitly upsert with the chosen role here.
+    if (data.user) {
+      await fetch('/api/auth/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: data.user.id,
+          email,
+          name,
+          role,
+        }),
+      });
+    }
+
     return { user: data.user, session: data.session };
   }
 
