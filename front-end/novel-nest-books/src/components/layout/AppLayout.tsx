@@ -9,8 +9,23 @@ import { usePathname } from 'next/navigation';
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
   const pathname = usePathname();
+  const [mounted, setMounted] = React.useState(false);
 
-  // Show nothing while loading auth state initially to prevent flashes
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // During SSR and the very first client hydration pass, we must match exactly what the server rendered.
+  // The server always renders the unauthenticated layout because it doesn't have local storage auth state.
+  if (!mounted) {
+    return (
+      <main className="w-full min-h-screen">
+        {children}
+      </main>
+    );
+  }
+
+  // Show spinner only after mounting if we are still fetching auth state
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
