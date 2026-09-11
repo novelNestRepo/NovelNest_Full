@@ -120,6 +120,18 @@ class ApiClient {
     });
   }
 
+  // --- Posts ---
+  async getPosts() {
+    return this.request<any[]>('/posts');
+  }
+
+  async createPost(content: string) {
+    return this.request<any>('/posts', {
+      method: 'POST',
+      body: JSON.stringify({ content }),
+    });
+  }
+
   // Books endpoints
   async getBooks() {
     return this.request<any[]>('/books');
