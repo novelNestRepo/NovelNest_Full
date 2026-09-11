@@ -16,7 +16,7 @@ import PageTitle from "@/components/custom/PageTitle";
 import { SettingsIcon } from "lucide-react";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { toast } from "sonner";
-import { supabase } from "@/lib/supabase";
+import { apiClient } from "@/lib/api";
 
 export default function Settings() {
   const { user, isAuthenticated } = useAuth();
@@ -25,8 +25,8 @@ export default function Settings() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (user?.user_metadata?.name) {
-      setName(user.user_metadata.name);
+    if (user?.name) {
+      setName(user.name);
     }
   }, [user]);
 
@@ -34,15 +34,23 @@ export default function Settings() {
     if (!user) return;
     setLoading(true);
     try {
-      const { error } = await supabase.auth.updateUser({
-        data: { name: name }
-      });
-      if (error) throw error;
+      await apiClient.updateProfile({ name });
       toast.success("Profile updated successfully!");
+      window.location.reload();
     } catch (error: any) {
       toast.error(error.message || "Failed to update profile");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleForceAdmin = async () => {
+    try {
+      await apiClient.updateProfile({ role: 'admin' });
+      toast.success('You are now an Admin! Please refresh the page.');
+      window.location.reload();
+    } catch (error) {
+      toast.error('Failed to update role');
     }
   };
 
@@ -95,6 +103,29 @@ export default function Settings() {
             <Button onClick={handleSave} disabled={loading}>
               {loading ? "Saving..." : "Save Changes"}
             </Button>
+          </CardContent>
+        </Card>
+
+        {/* Developer Tools */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Developer Tools</CardTitle>
+            <CardDescription>
+              Temporary tools for debugging and testing.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label>Force Admin Role</Label>
+                <p className="text-sm text-muted-foreground">
+                  Clicking this will instantly upgrade your account to Admin so you can test admin features.
+                </p>
+              </div>
+              <Button onClick={handleForceAdmin} disabled={user?.role === 'admin'}>
+                {user?.role === 'admin' ? 'Already Admin' : 'Make Me Admin'}
+              </Button>
+            </div>
           </CardContent>
         </Card>
 

@@ -29,7 +29,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <Sidebar />
         <main className="ml-24 flex flex-col py-4 px-8 *:w-full h-screen overflow-x-hidden">
           <Header />
-          {children}
+          <div key={pathname} className="animate-in fade-in zoom-in duration-500 flex-1">
+            {children}
+          </div>
         </main>
       </>
     );

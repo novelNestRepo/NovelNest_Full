@@ -108,6 +108,18 @@ class ApiClient {
     return { message: 'Logged out successfully' };
   }
 
+  // --- Users ---
+  async getUsers() {
+    return this.request<any[]>('/users');
+  }
+
+  async updateProfile(data: { name?: string; avatarUrl?: string; role?: string }) {
+    return this.request<any>('/user/update', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
   // Books endpoints
   async getBooks() {
     return this.request<any[]>('/books');

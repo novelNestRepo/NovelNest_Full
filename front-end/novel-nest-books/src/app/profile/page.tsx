@@ -9,6 +9,12 @@ import { Button } from "@/components/ui/button";
 import { BookOpen, Clock, BookMarked, Users, Pen } from "lucide-react";
 import { Book } from "@/lib/types";
 import ProfileBooksGrid from "@/components/custom/ProfileBooksGrid";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { supabase } from "@/lib/supabase";
+import { apiClient } from "@/lib/api";
+import { toast } from "sonner";
 
 import { useAuth } from "@/lib/hooks/useAuth";
 import { useRouter } from "next/navigation";
@@ -93,6 +99,48 @@ const Profile = () => {
   const { user, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
 
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editName, setEditName] = useState(user?.name || "");
+  const [editFile, setEditFile] = useState<File | null>(null);
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  const handleUpdateProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsUpdating(true);
+    try {
+      let newAvatarUrl = user?.avatarUrl;
+
+      if (editFile) {
+        // Upload to Supabase Storage
+        const fileExt = editFile.name.split('.').pop();
+        const fileName = `${user?.id}-${Math.random()}.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('avatars')
+          .upload(fileName, editFile);
+          
+        if (uploadError) throw uploadError;
+        
+        const { data: { publicUrl } } = supabase.storage
+          .from('avatars')
+          .getPublicUrl(fileName);
+          
+        newAvatarUrl = publicUrl;
+      }
+
+      await apiClient.updateProfile({ name: editName, avatarUrl: newAvatarUrl });
+      
+      toast.success('Profile updated successfully!');
+      setIsEditModalOpen(false);
+      window.location.reload(); // Quick way to refresh user context
+    } catch (error) {
+      console.error(error);
+      toast.error('Failed to update profile.');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
   if (isLoading) {
     return <div className="p-8 text-center">Loading profile...</div>;
   }
@@ -112,8 +160,8 @@ const Profile = () => {
             }`}
           >
             <AvatarImage
-              className=""
-              src={`https://avatar.vercel.sh/${user.email}`}
+              className="object-cover"
+              src={user.avatarUrl || `https://avatar.vercel.sh/${user.email}`}
             />
             <AvatarFallback className="bg-primary/10 text-primary text-4xl uppercase">
               {user.name?.[0] || user.email?.[0]}
@@ -132,11 +180,49 @@ const Profile = () => {
               Joined {new Date(user.createdAt || Date.now()).toLocaleDateString()} • {user.email}
             </p>
             <div className="flex gap-1">
-              <Button variant="outline" size="sm" className="gap-2">
-                <Pen size={16} />
-                <span>Edit Profile</span>
-              </Button>
-              <Button variant="outline" size="sm" className="gap-2">
+              <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="sm" className="gap-2" onClick={() => setEditName(user.name || "")}>
+                    <Pen size={16} />
+                    <span>Edit Profile</span>
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Edit Profile</DialogTitle>
+                    <DialogDescription>
+                      Update your display name and profile picture.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <form onSubmit={handleUpdateProfile} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="name">Display Name</Label>
+                      <Input 
+                        id="name" 
+                        value={editName} 
+                        onChange={(e) => setEditName(e.target.value)} 
+                        placeholder="Your Name" 
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="avatar">Profile Picture</Label>
+                      <Input 
+                        id="avatar" 
+                        type="file" 
+                        accept="image/*"
+                        onChange={(e) => setEditFile(e.target.files?.[0] || null)}
+                      />
+                    </div>
+                    <div className="flex justify-end gap-2">
+                      <Button variant="outline" type="button" onClick={() => setIsEditModalOpen(false)}>Cancel</Button>
+                      <Button type="submit" disabled={isUpdating}>
+                        {isUpdating ? 'Saving...' : 'Save Changes'}
+                      </Button>
+                    </div>
+                  </form>
+                </DialogContent>
+              </Dialog>
+              <Button variant="outline" size="sm" className="gap-2" onClick={() => router.push('/community')}>
                 <Users size={16} />
                 <span>Friends</span>
               </Button>

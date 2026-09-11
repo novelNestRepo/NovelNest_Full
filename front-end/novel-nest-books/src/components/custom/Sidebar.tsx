@@ -10,7 +10,8 @@ import {
   UserRound,
   Settings,
   MessageSquare,
-  ShieldAlert
+  ShieldAlert,
+  Users
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePathname, useRouter } from "next/navigation";
@@ -95,7 +96,12 @@ export default function Sidebar() {
         <SidebarItem
           icon={Bookmark}
           active={getActiveItem() === "bookmarks"}
-          onClick={bookmarks}
+          onClick={() => router.push("/bookmarks")}
+        />
+        <SidebarItem
+          icon={Users}
+          active={getActiveItem() === "community"}
+          onClick={() => router.push("/community")}
         />
         <SidebarItem
           icon={MessageSquare}
