@@ -47,6 +47,7 @@ export const channels = pgTable('channels', {
   description: text('description'),
   type: text('type').default('text'), // 'text' or 'voice'
   bookId: uuid('book_id').references(() => books.id),
+  communityId: uuid('community_id'), // Added for Custom Communities
   isPrivate: boolean('is_private').default(false),
   createdBy: uuid('created_by').references(() => users.id),
   createdAt: timestamp('created_at').defaultNow().notNull(),
@@ -67,4 +68,79 @@ export const posts = pgTable('posts', {
   userId: uuid('user_id').notNull().references(() => users.id),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const postLikes = pgTable('post_likes', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  postId: uuid('post_id').notNull().references(() => posts.id),
+  userId: uuid('user_id').notNull().references(() => users.id),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const postComments = pgTable('post_comments', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  content: text('content').notNull(),
+  postId: uuid('post_id').notNull().references(() => posts.id),
+  userId: uuid('user_id').notNull().references(() => users.id),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+import { relations } from 'drizzle-orm';
+
+export const usersRelations = relations(users, ({ many }) => ({
+  posts: many(posts),
+  postLikes: many(postLikes),
+  postComments: many(postComments),
+}));
+
+export const postsRelations = relations(posts, ({ one, many }) => ({
+  user: one(users, {
+    fields: [posts.userId],
+    references: [users.id],
+  }),
+  likes: many(postLikes),
+  comments: many(postComments),
+}));
+
+export const postLikesRelations = relations(postLikes, ({ one }) => ({
+  post: one(posts, {
+    fields: [postLikes.postId],
+    references: [posts.id],
+  }),
+  user: one(users, {
+    fields: [postLikes.userId],
+    references: [users.id],
+  }),
+}));
+
+export const postCommentsRelations = relations(postComments, ({ one }) => ({
+  post: one(posts, {
+    fields: [postComments.postId],
+    references: [posts.id],
+  }),
+  user: one(users, {
+    fields: [postComments.userId],
+    references: [users.id],
+  }),
+}));
+
+export const systemSettings = pgTable('system_settings', {
+  key: text('key').primaryKey(),
+  value: boolean('value').default(true).notNull(),
+});
+
+export const communities = pgTable('communities', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  name: text('name').notNull(),
+  description: text('description'),
+  ownerId: uuid('owner_id').notNull().references(() => users.id),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const communityMembers = pgTable('community_members', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  communityId: uuid('community_id').notNull().references(() => communities.id),
+  userId: uuid('user_id').notNull().references(() => users.id),
+  joinedAt: timestamp('joined_at').defaultNow().notNull(),
 });

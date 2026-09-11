@@ -45,5 +45,6 @@ export const useAuth = () => {
     logout: logoutMutation.mutateAsync,
     isLoginLoading: loginMutation.isPending,
     isRegisterLoading: registerMutation.isPending,
+    refreshUser: () => queryClient.invalidateQueries({ queryKey: ['user'] }),
   };
 };

@@ -171,6 +171,23 @@ class ApiClient {
     });
   }
 
+  async togglePostLike(postId: string) {
+    return this.request<{ liked: boolean }>(`/posts/${postId}/like`, {
+      method: 'POST',
+    });
+  }
+
+  async getPostComments(postId: string) {
+    return this.request<any[]>(`/posts/${postId}/comments`);
+  }
+
+  async createPostComment(postId: string, content: string) {
+    return this.request<any>(`/posts/${postId}/comments`, {
+      method: 'POST',
+      body: JSON.stringify({ content }),
+    });
+  }
+
   // --- Admin Scraping ---
   async scrapeBooks(query: string, sources: string[], adminId: string) {
     return this.request<any>('/admin/scrape', {
@@ -274,6 +291,29 @@ class ApiClient {
     return this.request<{ message: string }>('/user/resend-email-verification', {
       method: 'POST',
       body: JSON.stringify({ email }),
+    });
+  }
+
+  // --- Communities ---
+  async getCommunities() {
+    return this.request<any[]>('/communities');
+  }
+
+  async createCommunity(name: string, description: string) {
+    return this.request<any>('/communities', {
+      method: 'POST',
+      body: JSON.stringify({ name, description }),
+    });
+  }
+
+  async getCommunityChannels(communityId: string) {
+    return this.request<any[]>(`/communities/${communityId}/channels`);
+  }
+
+  async createCommunityChannel(communityId: string, name: string, description: string, type: 'text' | 'voice') {
+    return this.request<any>(`/communities/${communityId}/channels`, {
+      method: 'POST',
+      body: JSON.stringify({ name, description, type }),
     });
   }
 

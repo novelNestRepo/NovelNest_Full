@@ -1,6 +1,14 @@
 {
+  "scripts": {
+    "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\" \"npm run dev:realtime\" \"npm run dev:recommendation\"",
+    "dev:frontend": "cd front-end/novel-nest-books && npm run dev",
+    "dev:backend": "cd back-end && go run .",
+    "dev:realtime": "cd real-time-service && npm run dev",
+    "dev:recommendation": "cd recommendation-service && uvicorn app.main:app --reload --port 8000"
+  },
   "devDependencies": {
-    "@types/three": "^0.174.0"
+    "@types/three": "^0.174.0",
+    "concurrently": "^8.2.2"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.4",

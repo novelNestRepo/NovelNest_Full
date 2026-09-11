@@ -19,11 +19,10 @@ export async function POST(request: Request) {
     });
 
     if (existingUser) {
-      // Update the role if it was set during registration
+      // Do not overwrite the role for existing users
       const [updatedUser] = await db
         .update(users)
         .set({
-          role: role || 'user',
           name: name || existingUser.name,
           updatedAt: new Date(),
         })

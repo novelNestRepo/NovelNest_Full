@@ -17,6 +17,7 @@ import {
 import Image from "next/image";
 import PageTitle from "@/components/custom/PageTitle";
 import { useBooks } from "@/lib/hooks/useBooks";
+import Link from "next/link";
 
 export default function Books() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -72,7 +73,7 @@ export default function Books() {
               <CardHeader>
                 <div className="aspect-[2/3] relative overflow-hidden rounded-lg mb-4">
                   <Image
-                    src={book.cover_url || book.coverUrl || "/placeholder-book.jpg"}
+                    src={book.coverImage || book.cover_url || book.coverUrl || "/placeholder-book.jpg"}
                     alt={book.title || "Book cover"}
                     className="object-cover w-full h-full"
                     width="200"
@@ -91,8 +92,10 @@ export default function Books() {
                 <span className="text-sm font-medium capitalize">
                   {book.status || "unknown"}
                 </span>
-                <Button variant="link" className="cursor-pointer p-0">
-                  View Details
+                <Button variant="link" className="cursor-pointer p-0" asChild>
+                  <Link href={`/books/${book.id}`}>
+                    View Details
+                  </Link>
                 </Button>
               </CardFooter>
             </Card>

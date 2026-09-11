@@ -7,6 +7,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
 import AppLayout from "@/components/layout/AppLayout";
 import QueryProvider from "@/lib/providers/QueryProvider";
+import NextTopLoader from 'nextjs-toploader';
 
 const playfairDisplay = Playfair_Display({
   variable: "--font-playfair-display",
@@ -33,6 +34,7 @@ export default function RootLayout({
       <body
         className={`${playfairDisplay.variable} ${inter.variable} antialiased`}
       >
+        <NextTopLoader color="hsl(var(--primary))" showSpinner={false} />
         <QueryProvider>
           <TooltipProvider>
             <AppLayout>

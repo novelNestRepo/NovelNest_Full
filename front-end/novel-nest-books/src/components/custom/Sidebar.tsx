@@ -53,6 +53,7 @@ export default function Sidebar() {
     if (path.startsWith("/history")) return "history";
     if (path.startsWith("/bookmarks")) return "bookmarks";
     if (path.startsWith("/messages")) return "messages";
+    if (path.startsWith("/community")) return "community";
     if (path.startsWith("/profile")) return "profile";
     if (path.startsWith("/admin")) return "admin";
     if (path.startsWith("/settings")) return "settings";
@@ -115,7 +116,7 @@ export default function Sidebar() {
         />
       </div>
       <div>
-        {user?.role === 'admin' && (
+        {(user?.role === 'admin' || user?.role === 'owner') && (
           <SidebarItem
             icon={ShieldAlert}
             active={getActiveItem() === "admin"}

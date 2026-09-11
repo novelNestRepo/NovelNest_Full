@@ -7,22 +7,36 @@ import { supabase } from '@/lib/supabase';
 // Get all posts for the community feed
 export async function GET() {
   try {
-    const feedPosts = await db
-      .select({
-        id: posts.id,
-        content: posts.content,
-        createdAt: posts.createdAt,
+    const feedPostsRaw = await db.query.posts.findMany({
+      orderBy: (posts, { desc }) => [desc(posts.createdAt)],
+      limit: 50,
+      with: {
         user: {
-          id: users.id,
-          name: users.name,
-          email: users.email,
-          avatarUrl: users.avatarUrl,
+          columns: {
+            id: true,
+            name: true,
+            email: true,
+            avatarUrl: true,
+          }
+        },
+        likes: {
+          columns: {
+            userId: true
+          }
+        },
+        comments: {
+          columns: {
+            id: true
+          }
         }
-      })
-      .from(posts)
-      .leftJoin(users, eq(posts.userId, users.id))
-      .orderBy(desc(posts.createdAt))
-      .limit(50);
+      }
+    });
+
+    const feedPosts = feedPostsRaw.map(post => ({
+      ...post,
+      likesCount: post.likes.length,
+      commentsCount: post.comments.length,
+    }));
 
     return NextResponse.json(feedPosts, { status: 200 });
   } catch (error: any) {

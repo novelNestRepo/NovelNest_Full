@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -96,8 +96,13 @@ const activity = {
 
 const Profile = () => {
   const [activeTab, setActiveTab] = useState("currently-reading");
-  const { user, isAuthenticated, isLoading } = useAuth();
+  const { user, isAuthenticated, isLoading, refreshUser } = useAuth();
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editName, setEditName] = useState(user?.name || "");
@@ -117,7 +122,7 @@ const Profile = () => {
         
         const { error: uploadError } = await supabase.storage
           .from('avatars')
-          .upload(fileName, editFile);
+          .upload(fileName, editFile, { upsert: true });
           
         if (uploadError) throw uploadError;
         
@@ -132,7 +137,7 @@ const Profile = () => {
       
       toast.success('Profile updated successfully!');
       setIsEditModalOpen(false);
-      window.location.reload(); // Quick way to refresh user context
+      refreshUser(); // Refresh user context without reload
     } catch (error) {
       console.error(error);
       toast.error('Failed to update profile.');
@@ -141,12 +146,17 @@ const Profile = () => {
     }
   };
 
-  if (isLoading) {
+  useEffect(() => {
+    if (!isLoading && (!isAuthenticated || !user)) {
+      router.push('/login');
+    }
+  }, [isLoading, isAuthenticated, user, router]);
+
+  if (isLoading || !mounted) {
     return <div className="p-8 text-center">Loading profile...</div>;
   }
 
   if (!isAuthenticated || !user) {
-    router.push('/login');
     return null;
   }
 
@@ -173,10 +183,10 @@ const Profile = () => {
               {user.name || 'Anonymous User'}
             </h1>
             <p className="text-muted-foreground capitalize mb-1">
-              {user.role === 'admin' ? 'Librarian (Admin)' : 'Reader'} •{" "}
+              {user.role === 'owner' ? 'Platform Owner' : user.role === 'admin' ? 'Librarian (Admin)' : 'Reader'} •{" "}
               {userStats.booksRead} books read this year
             </p>
-            <p className="text-xs text-muted-foreground mb-4">
+            <p className="text-xs text-muted-foreground mb-4" suppressHydrationWarning>
               Joined {new Date(user.createdAt || Date.now()).toLocaleDateString()} • {user.email}
             </p>
             <div className="flex gap-1">

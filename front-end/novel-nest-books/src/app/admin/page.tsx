@@ -27,6 +27,8 @@ import {
   BookMarked,
   Sparkles,
   Zap,
+  Settings,
+  Lock,
 } from "lucide-react";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { toast } from "sonner";
@@ -68,6 +70,42 @@ const SOURCES = [
     color: "text-red-500",
     bg: "bg-red-500/10",
     border: "border-red-500/30",
+  },
+  {
+    id: "archiveorg",
+    name: "Archive.org",
+    icon: Database,
+    description: "Massive public domain digital library",
+    color: "text-slate-500",
+    bg: "bg-slate-500/10",
+    border: "border-slate-500/30",
+  },
+  {
+    id: "hindawi",
+    name: "Hindawi Foundation",
+    icon: BookMarked,
+    description: "High quality free Arabic literature",
+    color: "text-teal-500",
+    bg: "bg-teal-500/10",
+    border: "border-teal-500/30",
+  },
+  {
+    id: "doab",
+    name: "DOAB",
+    icon: Library,
+    description: "Directory of Open Access Books",
+    color: "text-indigo-500",
+    bg: "bg-indigo-500/10",
+    border: "border-indigo-500/30",
+  },
+  {
+    id: "standardebooks",
+    name: "Standard Ebooks",
+    icon: Sparkles,
+    description: "Carefully formatted public domain ebooks",
+    color: "text-fuchsia-500",
+    bg: "bg-fuchsia-500/10",
+    border: "border-fuchsia-500/30",
   },
 ];
 
@@ -140,7 +178,7 @@ function ScrapingAnimation({
             return (
               <div
                 key={srcId}
-                className={`flex items-center justify-between p-4 rounded-xl border transition-all duration-500 ${
+                className={`relative flex flex-col p-4 rounded-xl border transition-all duration-500 overflow-hidden ${
                   isCompleted
                     ? "bg-emerald-500/10 border-emerald-500/30"
                     : isFailed
@@ -148,27 +186,43 @@ function ScrapingAnimation({
                     : "bg-white/5 border-white/10 backdrop-blur-sm"
                 }`}
               >
-                <div className="flex items-center gap-3">
-                  <div className="relative">
-                    <Icon className={`w-5 h-5 ${isCompleted ? 'text-emerald-400' : isFailed ? 'text-red-400' : src.color}`} />
-                    {isWorking && <div className={`absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-green-400 animate-ping`} />}
+                {/* Individual Progress Bar Background for active workers */}
+                {isWorking && (
+                  <div className="absolute inset-0 opacity-10">
+                    <div className="h-full bg-gradient-to-r from-transparent via-white to-transparent animate-[shimmer_2s_infinite]" style={{ backgroundSize: "200% 100%" }} />
+                  </div>
+                )}
+                
+                <div className="flex items-center justify-between z-10">
+                  <div className="flex items-center gap-3">
+                    <div className="relative">
+                      <Icon className={`w-5 h-5 ${isCompleted ? 'text-emerald-400' : isFailed ? 'text-red-400' : src.color}`} />
+                      {isWorking && <div className={`absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-green-400 animate-ping`} />}
+                    </div>
+                    <div>
+                      <p className="font-medium text-sm">{src.name}</p>
+                      <p className="text-xs text-slate-400">
+                        {isCompleted ? "Worker finished successfully" : isFailed ? "Worker failed" : `Fetching batch${dots}`}
+                      </p>
+                    </div>
                   </div>
                   <div>
-                    <p className="font-medium text-sm">{src.name}</p>
-                    <p className="text-xs text-slate-400">
-                      {isCompleted ? "Worker finished successfully" : isFailed ? "Worker failed" : `Fetching batch${dots}`}
-                    </p>
+                    {isCompleted ? (
+                      <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                    ) : isFailed ? (
+                      <XCircle className="w-5 h-5 text-red-400" />
+                    ) : (
+                      <Loader2 className="w-5 h-5 animate-spin text-slate-400" />
+                    )}
                   </div>
                 </div>
-                <div>
-                  {isCompleted ? (
-                    <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-                  ) : isFailed ? (
-                    <XCircle className="w-5 h-5 text-red-400" />
-                  ) : (
-                    <Loader2 className="w-5 h-5 animate-spin text-slate-400" />
-                  )}
-                </div>
+                
+                {/* Inner linear progress indicator for active workers */}
+                {isWorking && (
+                  <div className="w-full h-1 bg-white/10 rounded-full mt-3 overflow-hidden z-10">
+                    <div className="h-full bg-gradient-to-r from-blue-400 to-indigo-400 animate-[indeterminate_1.5s_infinite_linear]" style={{ width: "50%", transformOrigin: "0% 50%" }} />
+                  </div>
+                )}
               </div>
             );
           })}
@@ -203,6 +257,10 @@ export default function AdminDashboard() {
     "ktobati",
     "gutenberg",
     "googlebooks",
+    "archiveorg",
+    "hindawi",
+    "doab",
+    "standardebooks",
   ]);
   const [limit, setLimit] = useState(50);
   const [hasPdf, setHasPdf] = useState(false);
@@ -212,6 +270,21 @@ export default function AdminDashboard() {
   const [failedSources, setFailedSources] = useState<string[]>([]);
   const [scrapedBooks, setScrapedBooks] = useState<any[]>([]);
   const [report, setReport] = useState<SourceReport[]>([]);
+
+  // Owner System Settings
+  const [systemSettings, setSystemSettings] = useState({
+    allowRegistration: true,
+    enableVoiceChannels: true,
+    maintenanceMode: false,
+  });
+
+  const toggleSetting = (key: string) => {
+    setSystemSettings(prev => ({
+      ...prev,
+      [key]: !prev[key as keyof typeof prev]
+    }));
+    toast.success("System setting updated successfully (Owner only)");
+  };
 
   const toggleSource = (id: string) => {
     setSelectedSources((prev) =>
@@ -301,15 +374,15 @@ export default function AdminDashboard() {
     }
   };
 
-  if (!isAuthenticated) {
+  if (!user || (user.role !== 'admin' && user.role !== 'owner')) {
     return (
       <div className="flex flex-col items-center justify-center h-[70vh] space-y-4">
         <ShieldAlert className="w-16 h-16 text-destructive" />
         <h1 className="text-2xl font-bold">Admin Access Required</h1>
         <p className="text-muted-foreground">
-          Please log in to access the Admin Dashboard.
+          You do not have permission to view this page.
         </p>
-        <Button onClick={() => router.push("/login")}>Go to Login</Button>
+        <Button onClick={() => router.push("/")}>Go Home</Button>
       </div>
     );
   }
@@ -319,6 +392,53 @@ export default function AdminDashboard() {
       <PageTitle title="Admin Dashboard" icon={<ShieldAlert />} />
 
       <div className="grid gap-6">
+        {/* ─── Owner Controls (Only visible to 'owner') ─── */}
+        {user?.role === 'owner' && (
+          <Card className="overflow-hidden border-yellow-500/30">
+            <CardHeader className="bg-gradient-to-r from-yellow-500/10 to-transparent">
+              <CardTitle className="flex items-center gap-2 text-yellow-500">
+                <Lock className="w-5 h-5" />
+                Owner Controls
+              </CardTitle>
+              <CardDescription>
+                Exclusive system-wide settings only available to the platform owner.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="pt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="flex items-center justify-between p-4 border rounded-xl bg-background/50">
+                <div className="space-y-0.5">
+                  <Label>Allow Public Registration</Label>
+                  <p className="text-xs text-muted-foreground">Enable or disable new signups</p>
+                </div>
+                <Switch 
+                  checked={systemSettings.allowRegistration}
+                  onCheckedChange={() => toggleSetting('allowRegistration')}
+                />
+              </div>
+              <div className="flex items-center justify-between p-4 border rounded-xl bg-background/50">
+                <div className="space-y-0.5">
+                  <Label>Enable Voice Channels</Label>
+                  <p className="text-xs text-muted-foreground">Toggle WebRTC voice features globally</p>
+                </div>
+                <Switch 
+                  checked={systemSettings.enableVoiceChannels}
+                  onCheckedChange={() => toggleSetting('enableVoiceChannels')}
+                />
+              </div>
+              <div className="flex items-center justify-between p-4 border rounded-xl bg-destructive/10 border-destructive/20">
+                <div className="space-y-0.5">
+                  <Label className="text-destructive">Maintenance Mode</Label>
+                  <p className="text-xs text-muted-foreground">Lockout all non-admin users</p>
+                </div>
+                <Switch 
+                  checked={systemSettings.maintenanceMode}
+                  onCheckedChange={() => toggleSetting('maintenanceMode')}
+                />
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* ─── Scraping Animation (shown while loading) ─── */}
         {loading && (
           <ScrapingAnimation 
@@ -371,7 +491,7 @@ export default function AdminDashboard() {
                       onChange={(e) => setLimit(Number(e.target.value))}
                       className="h-11"
                       min={10}
-                      max={1000}
+                      max={2000}
                     />
                   </div>
                   <div className="space-y-2 flex flex-col justify-center">

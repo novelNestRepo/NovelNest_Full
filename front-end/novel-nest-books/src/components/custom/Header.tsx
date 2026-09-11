@@ -67,11 +67,11 @@ export default function Header() {
               className="hover:bg-primary/8 active:bg-primary/8 p-2 rounded-4xl transition-all duration-100"
             >
               <div className="flex items-center gap-2 cursor-pointer">
-                <span className="text-sm font-medium">{user?.email}</span>
+                <span className="text-sm font-medium">{user?.name || user?.email}</span>
                 <Avatar>
-                  <AvatarImage src={`https://avatar.vercel.sh/${user?.email}`} />
-                  <AvatarFallback>
-                    {user?.email?.substring(0, 2).toUpperCase()}
+                  <AvatarImage className="object-cover" src={user?.avatarUrl || `https://avatar.vercel.sh/${user?.email}`} />
+                  <AvatarFallback className="uppercase">
+                    {user?.name?.substring(0, 2) || user?.email?.substring(0, 2)}
                   </AvatarFallback>
                 </Avatar>
               </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,8 +12,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import PageTitle from "@/components/custom/PageTitle";
-import { SettingsIcon } from "lucide-react";
+import { SettingsIcon, Upload, Camera } from "lucide-react";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { toast } from "sonner";
 import { apiClient } from "@/lib/api";
@@ -22,11 +23,14 @@ export default function Settings() {
   const { user, isAuthenticated } = useAuth();
   const [notifications, setNotifications] = useState(true);
   const [name, setName] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState<string>("");
   const [loading, setLoading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (user?.name) {
-      setName(user.name);
+    if (user) {
+      setName(user.name || "");
+      setAvatarUrl(user.avatar_url || "");
     }
   }, [user]);
 
@@ -34,7 +38,7 @@ export default function Settings() {
     if (!user) return;
     setLoading(true);
     try {
-      await apiClient.updateProfile({ name });
+      await apiClient.updateProfile({ name, avatarUrl });
       toast.success("Profile updated successfully!");
       window.location.reload();
     } catch (error: any) {
@@ -54,6 +58,34 @@ export default function Settings() {
     }
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select a valid image file");
+      return;
+    }
+
+    // Validate file size (e.g. max 2MB since it's going to be base64 in DB)
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("Image must be less than 2MB");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const base64 = event.target?.result as string;
+      setAvatarUrl(base64);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
   if (!isAuthenticated) {
     return (
       <>
@@ -69,7 +101,7 @@ export default function Settings() {
     <>
       <PageTitle title="Settings" icon={<SettingsIcon />} />
 
-      <div className="space-y-4">
+      <div className="space-y-4 max-w-3xl">
         {/* Profile Settings */}
         <Card>
           <CardHeader>
@@ -78,7 +110,46 @@ export default function Settings() {
               Manage your account information and preferences
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
+              <div 
+                className="relative group cursor-pointer"
+                onClick={handleAvatarClick}
+              >
+                <Avatar className="w-24 h-24 border-2 border-border transition-all duration-300 group-hover:border-primary/50 group-hover:shadow-md">
+                  <AvatarImage src={avatarUrl} alt={name || "Avatar"} className="object-cover" />
+                  <AvatarFallback className="text-2xl bg-primary/10 text-primary">
+                    {name?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <Camera className="w-8 h-8 text-white" />
+                </div>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileChange}
+                  accept="image/*"
+                  className="hidden"
+                />
+              </div>
+              <div className="space-y-1">
+                <h3 className="font-medium">Profile Picture</h3>
+                <p className="text-sm text-muted-foreground">
+                  Click the avatar to upload a new photo. Max 2MB.
+                </p>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="mt-2"
+                  onClick={handleAvatarClick}
+                >
+                  <Upload className="w-4 h-4 mr-2" />
+                  Upload Image
+                </Button>
+              </div>
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -100,7 +171,7 @@ export default function Settings() {
                 placeholder="Your name"
               />
             </div>
-            <Button onClick={handleSave} disabled={loading}>
+            <Button onClick={handleSave} disabled={loading} className="w-full sm:w-auto">
               {loading ? "Saving..." : "Save Changes"}
             </Button>
           </CardContent>
@@ -115,7 +186,7 @@ export default function Settings() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="space-y-0.5">
                 <Label>Force Admin Role</Label>
                 <p className="text-sm text-muted-foreground">
@@ -162,7 +233,7 @@ export default function Settings() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="space-y-0.5">
                 <Label>Delete Account</Label>
                 <p className="text-sm text-muted-foreground">
