@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -12,6 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import PageTitle from "@/components/custom/PageTitle";
 import {
   Database,
@@ -70,24 +71,6 @@ const SOURCES = [
   },
 ];
 
-const SCRAPING_MESSAGES = [
-  "Connecting to Open Library API...",
-  "Browsing arabic_fiction subject catalog...",
-  "Found 12,640 works — downloading metadata...",
-  "Fetching cover images from Open Library...",
-  "Spinning up Ktobati worker...",
-  "Crawling Ktobati novel categories...",
-  "Parsing book cards with Cheerio...",
-  "Launching Gutenberg spider...",
-  "Searching Project Gutenberg archives...",
-  "Extracting PDF download links...",
-  "Querying Google Books API...",
-  "Downloading thumbnail covers...",
-  "Deduplicating results across sources...",
-  "Inserting unique books into database...",
-  "Almost there — finalizing batch insert...",
-];
-
 interface SourceReport {
   source: string;
   count: number;
@@ -95,33 +78,30 @@ interface SourceReport {
 }
 
 // ─── Scraping Animation Component ───────────────────────────────────
-function ScrapingAnimation({ selectedSources }: { selectedSources: string[] }) {
-  const [messageIdx, setMessageIdx] = useState(0);
+function ScrapingAnimation({ 
+  selectedSources, 
+  completedSources,
+  failedSources 
+}: { 
+  selectedSources: string[];
+  completedSources: string[];
+  failedSources: string[];
+}) {
   const [dots, setDots] = useState("");
-  const [progress, setProgress] = useState(0);
+  const total = selectedSources.length;
+  const finished = completedSources.length + failedSources.length;
+  const progress = total > 0 ? (finished / total) * 100 : 0;
 
   useEffect(() => {
-    const msgInterval = setInterval(() => {
-      setMessageIdx((prev) => (prev + 1) % SCRAPING_MESSAGES.length);
-    }, 2000);
-
     const dotInterval = setInterval(() => {
       setDots((prev) => (prev.length >= 3 ? "" : prev + "."));
     }, 400);
 
-    const progressInterval = setInterval(() => {
-      setProgress((prev) => Math.min(prev + Math.random() * 8, 92));
-    }, 800);
-
-    return () => {
-      clearInterval(msgInterval);
-      clearInterval(dotInterval);
-      clearInterval(progressInterval);
-    };
+    return () => clearInterval(dotInterval);
   }, []);
 
   return (
-    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-8 text-white">
+    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-8 text-white transition-all duration-500">
       {/* Background animated grid */}
       <div className="absolute inset-0 opacity-10">
         <div
@@ -133,70 +113,79 @@ function ScrapingAnimation({ selectedSources }: { selectedSources: string[] }) {
         />
       </div>
 
-      {/* Floating orbs */}
-      <div className="absolute top-10 left-10 w-32 h-32 bg-blue-500/20 rounded-full blur-3xl animate-pulse" />
-      <div className="absolute bottom-10 right-10 w-40 h-40 bg-emerald-500/20 rounded-full blur-3xl animate-pulse delay-700" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-purple-500/10 rounded-full blur-3xl animate-pulse delay-1000" />
-
       <div className="relative z-10 space-y-6">
         {/* Header */}
         <div className="flex items-center gap-3">
           <div className="relative">
             <Zap className="w-8 h-8 text-yellow-400 animate-pulse" />
-            <div className="absolute inset-0 w-8 h-8 bg-yellow-400/30 rounded-full blur-md animate-ping" />
           </div>
           <div>
-            <h3 className="text-xl font-bold">Scraping in Progress</h3>
+            <h3 className="text-xl font-bold">Parallel Scraping in Progress</h3>
             <p className="text-sm text-slate-400">
-              {selectedSources.length} worker{selectedSources.length > 1 ? "s" : ""} running concurrently
+              Running independent workers across {total} domains
             </p>
           </div>
         </div>
 
         {/* Worker status indicators */}
-        <div className="flex flex-wrap gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {selectedSources.map((srcId) => {
             const src = SOURCES.find((s) => s.id === srcId);
             if (!src) return null;
             const Icon = src.icon;
+            const isCompleted = completedSources.includes(srcId);
+            const isFailed = failedSources.includes(srcId);
+            const isWorking = !isCompleted && !isFailed;
+
             return (
               <div
                 key={srcId}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm`}
+                className={`flex items-center justify-between p-4 rounded-xl border transition-all duration-500 ${
+                  isCompleted
+                    ? "bg-emerald-500/10 border-emerald-500/30"
+                    : isFailed
+                    ? "bg-red-500/10 border-red-500/30"
+                    : "bg-white/5 border-white/10 backdrop-blur-sm"
+                }`}
               >
-                <div className="relative">
-                  <Icon className={`w-4 h-4 ${src.color}`} />
-                  <div className={`absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-green-400 animate-ping`} />
+                <div className="flex items-center gap-3">
+                  <div className="relative">
+                    <Icon className={`w-5 h-5 ${isCompleted ? 'text-emerald-400' : isFailed ? 'text-red-400' : src.color}`} />
+                    {isWorking && <div className={`absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-green-400 animate-ping`} />}
+                  </div>
+                  <div>
+                    <p className="font-medium text-sm">{src.name}</p>
+                    <p className="text-xs text-slate-400">
+                      {isCompleted ? "Worker finished successfully" : isFailed ? "Worker failed" : `Fetching batch${dots}`}
+                    </p>
+                  </div>
                 </div>
-                <span className="text-xs font-medium">{src.name}</span>
-                <Loader2 className="w-3 h-3 animate-spin text-slate-400" />
+                <div>
+                  {isCompleted ? (
+                    <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                  ) : isFailed ? (
+                    <XCircle className="w-5 h-5 text-red-400" />
+                  ) : (
+                    <Loader2 className="w-5 h-5 animate-spin text-slate-400" />
+                  )}
+                </div>
               </div>
             );
           })}
         </div>
 
         {/* Progress bar */}
-        <div className="space-y-2">
+        <div className="space-y-2 mt-4">
           <div className="h-2 bg-white/10 rounded-full overflow-hidden">
             <div
-              className="h-full bg-gradient-to-r from-blue-500 via-emerald-500 to-purple-500 rounded-full transition-all duration-700 ease-out relative"
+              className="h-full bg-gradient-to-r from-blue-500 via-emerald-500 to-purple-500 rounded-full transition-all duration-1000 ease-out"
               style={{ width: `${progress}%` }}
-            >
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-pulse" />
-            </div>
+            />
           </div>
           <div className="flex justify-between text-xs text-slate-400">
+            <span>{finished} of {total} workers finished</span>
             <span>{Math.round(progress)}%</span>
-            <span>Concurrent execution</span>
           </div>
-        </div>
-
-        {/* Live log message */}
-        <div className="flex items-center gap-2 text-sm text-slate-300 font-mono bg-white/5 rounded-lg px-4 py-3 border border-white/10">
-          <span className="text-emerald-400">$</span>
-          <span className="animate-pulse">
-            {SCRAPING_MESSAGES[messageIdx]}{dots}
-          </span>
         </div>
       </div>
     </div>
@@ -215,7 +204,12 @@ export default function AdminDashboard() {
     "gutenberg",
     "googlebooks",
   ]);
+  const [limit, setLimit] = useState(50);
+  const [hasPdf, setHasPdf] = useState(false);
+  
   const [loading, setLoading] = useState(false);
+  const [completedSources, setCompletedSources] = useState<string[]>([]);
+  const [failedSources, setFailedSources] = useState<string[]>([]);
   const [scrapedBooks, setScrapedBooks] = useState<any[]>([]);
   const [report, setReport] = useState<SourceReport[]>([]);
 
@@ -242,33 +236,68 @@ export default function AdminDashboard() {
     }
 
     setLoading(true);
+    setCompletedSources([]);
+    setFailedSources([]);
     setReport([]);
     setScrapedBooks([]);
 
-    try {
-      const res = await fetch("/api/admin/scrape", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          query: query.trim(),
-          sources: selectedSources,
-          adminId: user.id,
-        }),
-      });
+    // We trigger a separate fetch for each selected source to run them truly in parallel from the client
+    const promises = selectedSources.map(async (source) => {
+      try {
+        const res = await fetch(`/api/admin/scrape/${source}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            query: query.trim(),
+            adminId: user.id,
+            limit,
+            hasPdf
+          }),
+        });
 
-      const data = await res.json();
+        const data = await res.json();
+        
+        if (!res.ok) {
+          throw new Error(data.error || "Failed");
+        }
 
-      if (!res.ok) {
-        throw new Error(data.error || "Failed to scrape books.");
+        setCompletedSources(prev => [...prev, source]);
+        
+        if (data.report) {
+          setReport(prev => [...prev, data.report]);
+        }
+        
+        if (data.books && data.books.length > 0) {
+          setScrapedBooks(prev => {
+            // Deduplicate across sources in frontend state
+            const all = [...prev, ...data.books];
+            const seen = new Set();
+            return all.filter(book => {
+              const k = book.title.toLowerCase();
+              if (seen.has(k)) return false;
+              seen.add(k);
+              return true;
+            });
+          });
+        }
+        return data;
+      } catch (err: any) {
+        setFailedSources(prev => [...prev, source]);
+        setReport(prev => [...prev, { source, count: 0, error: err.message }]);
+        throw err;
       }
+    });
 
-      toast.success(data.message);
-      setReport(data.report || []);
-      setScrapedBooks(data.books || []);
-    } catch (error: any) {
-      toast.error(error.message);
+    try {
+      await Promise.allSettled(promises);
+      toast.success("Parallel scraping complete!");
+    } catch (e) {
+      // errors already caught individually
     } finally {
-      setLoading(false);
+      // Small delay to let the animation show 100%
+      setTimeout(() => {
+        setLoading(false);
+      }, 1000);
     }
   };
 
@@ -292,7 +321,11 @@ export default function AdminDashboard() {
       <div className="grid gap-6">
         {/* ─── Scraping Animation (shown while loading) ─── */}
         {loading && (
-          <ScrapingAnimation selectedSources={selectedSources} />
+          <ScrapingAnimation 
+            selectedSources={selectedSources} 
+            completedSources={completedSources}
+            failedSources={failedSources}
+          />
         )}
 
         {/* ─── Scraper Controls ─── */}
@@ -309,19 +342,51 @@ export default function AdminDashboard() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6 pt-6">
-              {/* Search Query */}
-              <div className="space-y-2">
-                <Label className="text-xs uppercase font-semibold tracking-wider text-muted-foreground">
-                  Search Query
-                </Label>
-                <div className="relative max-w-lg">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    placeholder="e.g. روايات عربية, Arabic novels, Naguib Mahfouz..."
-                    className="pl-9 h-11"
-                  />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Search Query */}
+                <div className="space-y-2">
+                  <Label className="text-xs uppercase font-semibold tracking-wider text-muted-foreground">
+                    Search Query
+                  </Label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input
+                      value={query}
+                      onChange={(e) => setQuery(e.target.value)}
+                      placeholder="e.g. روايات عربية, Arabic novels, Naguib Mahfouz..."
+                      className="pl-9 h-11"
+                    />
+                  </div>
+                </div>
+
+                {/* Filters */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-xs uppercase font-semibold tracking-wider text-muted-foreground">
+                      Limit (per source)
+                    </Label>
+                    <Input
+                      type="number"
+                      value={limit}
+                      onChange={(e) => setLimit(Number(e.target.value))}
+                      className="h-11"
+                      min={10}
+                      max={1000}
+                    />
+                  </div>
+                  <div className="space-y-2 flex flex-col justify-center">
+                    <Label className="text-xs uppercase font-semibold tracking-wider text-muted-foreground mb-2">
+                      PDF Filter
+                    </Label>
+                    <div className="flex items-center space-x-2">
+                      <Switch
+                        id="has-pdf"
+                        checked={hasPdf}
+                        onCheckedChange={setHasPdf}
+                      />
+                      <Label htmlFor="has-pdf">Must have PDF</Label>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -388,12 +453,14 @@ export default function AdminDashboard() {
         )}
 
         {/* ─── Per-Source Report ─── */}
-        {report.length > 0 && (
+        {report.length > 0 && !loading && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {report.map((r, idx) => {
               const srcConfig = SOURCES.find(
-                (s) => s.name === r.source
+                (s) => s.name === r.source || s.id === r.source
               );
+              const displayName = srcConfig?.name || r.source;
+              
               return (
                 <Card
                   key={idx}
@@ -406,7 +473,7 @@ export default function AdminDashboard() {
                 >
                   <CardContent className="pt-6">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="font-semibold text-sm">{r.source}</span>
+                      <span className="font-semibold text-sm">{displayName}</span>
                       {r.error && r.count === 0 ? (
                         <XCircle className="w-5 h-5 text-destructive" />
                       ) : (
@@ -428,7 +495,7 @@ export default function AdminDashboard() {
 
         {/* ─── Scraped Books Grid ─── */}
         {scrapedBooks.length > 0 && (
-          <Card className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+          <Card className={`animate-in fade-in slide-in-from-bottom-4 duration-700 ${loading ? 'opacity-50 pointer-events-none' : ''}`}>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <BookOpen className="w-5 h-5" />
@@ -439,7 +506,7 @@ export default function AdminDashboard() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {scrapedBooks.map((book: any, idx: number) => (
                   <div
                     key={idx}
