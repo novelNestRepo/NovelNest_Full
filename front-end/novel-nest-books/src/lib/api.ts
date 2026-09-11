@@ -171,7 +171,14 @@ class ApiClient {
     });
   }
 
-  // Books endpoints
+  // --- Admin Scraping ---
+  async scrapeBooks(query: string, sources: string[], adminId: string) {
+    return this.request<any>('/admin/scrape', {
+      method: 'POST',
+      body: JSON.stringify({ query, sources, adminId }),
+    });
+  }
+
   async getBooks() {
     return this.request<any[]>('/books');
   }
