@@ -9,7 +9,10 @@ export const useAuth = () => {
       apiClient.login(email, password),
     onSuccess: (data) => {
       apiClient.setToken(data.token);
-      queryClient.setQueryData(['user'], data.user);
+      // Invalidate so the query re-fetches from getCurrentUser() -> /api/user/me
+      // which returns the DB user with proper top-level name, role, etc.
+      // Do NOT setQueryData with the raw Supabase auth user — it has a different shape.
+      queryClient.invalidateQueries({ queryKey: ['user'] });
     },
   });
 
