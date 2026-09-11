@@ -1,0 +1,22 @@
+node_modules/
+.DS_Store
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+.idea/
+.vscode/
+__pycache__/
+*.pyc
+*.exe
+# Python venv
+venv/
+env/
+.venv/
+
+# Next.js
+.next/
+out/
+build/
+coverage/
