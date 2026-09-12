@@ -70,7 +70,7 @@ export default function Sidebar() {
   const settings = () => router.push("/settings");
 
   return (
-    <div className="fixed left-0 top-0 bottom-0 w-[96px] flex flex-col items-center justify-center py-4 bg-background border-r border-border">
+    <div className="fixed left-0 top-0 bottom-0 w-[96px] hidden md:flex flex-col items-center justify-center py-4 bg-background border-r border-border">
       <Link href="/">
         <Image
           src="/novelnest.png"

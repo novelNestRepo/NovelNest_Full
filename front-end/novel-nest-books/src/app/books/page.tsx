@@ -44,18 +44,18 @@ export default function Books() {
     <>
       <PageTitle title="Books" icon={<BookOpen />} />
 
-      <div className="flex justify-between items-center mb-4">
-        <div className="relative">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+        <div className="relative w-full sm:w-auto">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
           <Input
             placeholder="Search books..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-[300px] bg-foreground/5 border-none rounded py-2 px-4 pl-10 text-sm outline-none focus-visible:ring-1 focus-visible:ring-primary/30"
+            className="w-full sm:w-[300px] bg-foreground/5 border-none rounded py-2 px-4 pl-10 text-sm outline-none focus-visible:ring-1 focus-visible:ring-primary/30"
           />
         </div>
-        <Button className="cursor-pointer" disabled={isCreating}>
-          <Plus className="h-4 w-4" />
+        <Button className="cursor-pointer w-full sm:w-auto" disabled={isCreating}>
+          <Plus className="h-4 w-4 mr-2" />
           {isCreating ? "Adding..." : "Add Book"}
         </Button>
       </div>

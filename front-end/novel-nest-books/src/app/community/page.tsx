@@ -403,7 +403,7 @@ export default function CommunityPage() {
         </TabsContent>
 
         <TabsContent value="communities" className="flex-1 flex flex-col gap-6 m-0 p-0 h-full">
-          <div className="flex justify-between items-center bg-card p-6 rounded-xl border border-border shadow-sm">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-card p-6 rounded-xl border border-border shadow-sm">
             <div>
               <h2 className="text-2xl font-serif font-bold">Custom Communities</h2>
               <p className="text-muted-foreground">Join or create private and public spaces with integrated Voice and Text channels.</p>
@@ -413,7 +413,7 @@ export default function CommunityPage() {
                 placeholder="Community Name" 
                 value={newCommunityName}
                 onChange={e => setNewCommunityName(e.target.value)}
-                className="w-64"
+                className="w-full sm:w-64"
               />
               <Button type="submit" disabled={!newCommunityName.trim()} className="gap-2">
                 <Plus className="w-4 h-4" /> Create

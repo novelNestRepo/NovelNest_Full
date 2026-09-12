@@ -31,7 +31,7 @@ export default function PopularBooks() {
         </div>
       </div>
 
-      <div className="grid grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
         {loading ? (
           <div className="col-span-4 text-center py-10">Loading books...</div>
         ) : popularBooks.length > 0 ? (

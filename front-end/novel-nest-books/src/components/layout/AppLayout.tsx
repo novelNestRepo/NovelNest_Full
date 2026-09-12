@@ -3,6 +3,7 @@
 import React from 'react';
 import { useAuth } from '@/lib/hooks/useAuth';
 import Sidebar from '@/components/custom/Sidebar';
+import MobileNav from '@/components/custom/MobileNav';
 import Header from '@/components/custom/Header';
 import { usePathname } from 'next/navigation';
 
@@ -42,7 +43,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     return (
       <>
         <Sidebar />
-        <main className="ml-24 flex flex-col py-4 px-8 *:w-full h-screen overflow-x-hidden">
+        <MobileNav />
+        <main className="md:ml-24 flex flex-col py-4 px-4 md:px-8 pb-24 md:pb-4 *:w-full h-screen overflow-x-hidden">
           <Header />
           <div key={pathname} className="animate-in fade-in zoom-in duration-500 flex-1">
             {children}

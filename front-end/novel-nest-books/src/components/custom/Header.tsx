@@ -26,15 +26,15 @@ export default function Header() {
   };
 
   return (
-    <header className="flex items-center justify-between mb-8">
-      <div className="relative">
+    <header className="flex items-center justify-between mb-6 md:mb-8">
+      <div className="relative flex-1 max-w-[150px] sm:max-w-[200px] md:max-w-[300px]">
         <input
           type="search"
-          placeholder="Search book name, author, edition..."
-          className="w-[300px] bg-foreground/5 border-none rounded-full p-4 pl-10 text-sm outline-none focus:ring-1 focus:ring-primary/30"
+          placeholder="Search book..."
+          className="w-full bg-foreground/5 border-none rounded-full py-3 px-4 pl-10 md:p-4 md:pl-10 text-xs md:text-sm outline-none focus:ring-1 focus:ring-primary/30"
         />
         <svg
-          className="absolute left-3 top-4.5 w-4 h-4 text-foreground/50"
+          className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/50"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -49,10 +49,10 @@ export default function Header() {
         </svg>
       </div>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2 md:gap-4">
         <Link
           href="/voice-channels"
-          className="text-sm font-medium text-primary hover:underline me-1"
+          className="hidden sm:block text-sm font-medium text-primary hover:underline me-1"
         >
           Voice Channels
         </Link>
@@ -64,11 +64,11 @@ export default function Header() {
           <DropdownMenu>
             <DropdownMenuTrigger
               asChild
-              className="hover:bg-primary/8 active:bg-primary/8 p-2 rounded-4xl transition-all duration-100"
+              className="hover:bg-primary/8 active:bg-primary/8 p-1.5 md:p-2 rounded-4xl transition-all duration-100"
             >
               <div className="flex items-center gap-2 cursor-pointer">
-                <span className="text-sm font-medium">{user?.name || user?.email}</span>
-                <Avatar>
+                <span className="hidden sm:block text-sm font-medium">{user?.name || user?.email}</span>
+                <Avatar className="h-8 w-8 md:h-10 md:w-10">
                   <AvatarImage className="object-cover" src={user?.avatarUrl || `https://avatar.vercel.sh/${user?.email}`} />
                   <AvatarFallback className="uppercase">
                     {user?.name?.substring(0, 2) || user?.email?.substring(0, 2)}

@@ -162,8 +162,8 @@ const Profile = () => {
 
   return (
     <div className="space-y-4 animate-in fade-in zoom-in duration-500">
-      <div className="flex items-center">
-        <div className="flex-2/3 xl:flex-3/4 flex gap-2">
+      <div className="flex flex-col lg:flex-row items-start lg:items-center gap-6 lg:gap-4">
+        <div className="w-full lg:w-2/3 xl:w-3/4 flex flex-col sm:flex-row gap-4 items-center sm:items-start text-center sm:text-left">
           <Avatar
             className={`w-28 h-28 ${
               user.email ? "" : "border-2 border-primary"
@@ -239,7 +239,7 @@ const Profile = () => {
             </div>
           </div>
         </div>
-        <div className="flex-1/3 xl:flex-1/4">
+        <div className="w-full lg:w-1/3 xl:w-1/4">
           <div className="bg-white rounded-lg p-4 shadow-sm w-full md:w-auto">
             <div className="grid grid-cols-3 gap-8">
               <div className="text-center">
@@ -263,8 +263,8 @@ const Profile = () => {
         </div>
       </div>
 
-      <div className="flex gap-4">
-        <div className="flex-2/3 xl:flex-3/4">
+      <div className="flex flex-col lg:flex-row gap-6 lg:gap-4">
+        <div className="w-full lg:w-2/3 xl:w-3/4">
           {/* Book Tabs */}
           <Tabs
             defaultValue="currently-reading"
@@ -285,7 +285,7 @@ const Profile = () => {
             </TabsContent>
           </Tabs>
         </div>
-        <div className="flex-1/3 xl:flex-1/4 space-y-4">
+        <div className="w-full lg:w-1/3 xl:w-1/4 space-y-4">
           <div className="bg-white p-6 rounded-lg shadow-sm space-y-2">
             <h2 className="text-lg font-medium">
               {new Date().getFullYear()} Reading Challenge
