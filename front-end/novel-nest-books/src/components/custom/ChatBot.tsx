@@ -7,6 +7,7 @@ import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { MessageSquare, X, Send, Bot, User } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import Image from 'next/image';
 
 type Message = {
   role: 'user' | 'assistant';
@@ -75,8 +76,8 @@ export default function ChatBot() {
               {/* Header */}
               <div className="flex items-center justify-between p-4 bg-primary/10 border-b border-white/10">
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-                    <Bot className="w-5 h-5 text-primary" />
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center overflow-hidden">
+                    <Image src="/novelnest.png" alt="NestBot" width={32} height={32} className="object-cover" />
                   </div>
                   <div>
                     <h3 className="font-semibold text-sm">NestBot</h3>
@@ -93,8 +94,8 @@ export default function ChatBot() {
                 <div className="space-y-4">
                   {messages.map((msg, idx) => (
                     <div key={idx} className={`flex gap-2 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
-                      <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 mt-1 ${msg.role === 'user' ? 'bg-secondary' : 'bg-primary/20'}`}>
-                        {msg.role === 'user' ? <User className="w-3 h-3" /> : <Bot className="w-3 h-3 text-primary" />}
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center overflow-hidden shrink-0 mt-1 ${msg.role === 'user' ? 'bg-secondary' : ''}`}>
+                        {msg.role === 'user' ? <User className="w-3 h-3" /> : <Image src="/novelnest.png" alt="NestBot" width={24} height={24} />}
                       </div>
                       <div className={`text-sm p-3 rounded-2xl max-w-[80%] leading-relaxed ${
                         msg.role === 'user' 
@@ -107,8 +108,8 @@ export default function ChatBot() {
                   ))}
                   {isLoading && (
                     <div className="flex gap-2">
-                      <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center shrink-0 mt-1">
-                        <Bot className="w-3 h-3 text-primary" />
+                      <div className="w-6 h-6 rounded-full flex items-center justify-center overflow-hidden shrink-0 mt-1">
+                        <Image src="/novelnest.png" alt="NestBot" width={24} height={24} />
                       </div>
                       <div className="text-sm p-3 rounded-2xl bg-muted rounded-tl-sm border border-white/5 flex gap-1 items-center">
                         <span className="w-1.5 h-1.5 rounded-full bg-primary/50 animate-bounce" style={{ animationDelay: '0ms' }} />
