@@ -279,6 +279,33 @@ class ApiClient {
     });
   }
 
+  // Friendships endpoints
+  async getFriendships() {
+    return this.request<any[]>('/relationships/friends');
+  }
+
+  async sendFriendRequest(targetUserId: string) {
+    return this.request<any>('/relationships/friends', {
+      method: 'POST',
+      body: JSON.stringify({ targetUserId }),
+    });
+  }
+
+  async updateFriendRequest(friendshipId: string, action: 'accepted' | 'rejected') {
+    return this.request<any>('/relationships/friends', {
+      method: 'PUT',
+      body: JSON.stringify({ friendshipId, action }),
+    });
+  }
+
+  // Direct Messaging
+  async startDirectMessage(targetUserId: string) {
+    return this.request<any>('/messages/channels/dm', {
+      method: 'POST',
+      body: JSON.stringify({ targetUserId }),
+    });
+  }
+
   // User management endpoints
   async requestPasswordReset(email: string) {
     return this.request<{ message: string }>('/user/request-password-reset', {

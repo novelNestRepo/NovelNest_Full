@@ -10,8 +10,9 @@ import { apiClient } from '@/lib/api';
 import { toast } from 'sonner';
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { MessageSquare, Heart, Share2, UserPlus, Users, Hash, Mic, Plus } from 'lucide-react';
+import { MessageSquare, Heart, Share2, UserPlus, Users, Hash, Mic, Plus, MessageCircle, Check, X, Clock } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useRouter } from 'next/navigation';
 
 function PostCard({ post, currentUserId, onUpdate }: { post: any, currentUserId?: string, onUpdate: () => void }) {
   const [isLiked, setIsLiked] = useState(() => post.likes?.some((l: any) => l.userId === currentUserId));
@@ -152,9 +153,11 @@ function PostCard({ post, currentUserId, onUpdate }: { post: any, currentUserId?
 
 export default function CommunityPage() {
   const { user } = useAuth();
+  const router = useRouter();
   const [posts, setPosts] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
   const [communities, setCommunities] = useState<any[]>([]);
+  const [friendships, setFriendships] = useState<any[]>([]);
   const [newPostContent, setNewPostContent] = useState('');
   const [newCommunityName, setNewCommunityName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -166,15 +169,17 @@ export default function CommunityPage() {
 
   const fetchData = async () => {
     try {
-      const [fetchedPosts, fetchedUsers, fetchedCommunities] = await Promise.all([
+      const [fetchedPosts, fetchedUsers, fetchedCommunities, fetchedFriendships] = await Promise.all([
         apiClient.getPosts(),
         apiClient.getUsers(),
-        apiClient.getCommunities().catch(() => [])
+        apiClient.getCommunities().catch(() => []),
+        apiClient.getFriendships().catch(() => [])
       ]);
       
       setPosts(fetchedPosts || []);
       setUsers(fetchedUsers || []);
       setCommunities(fetchedCommunities || []);
+      setFriendships(fetchedFriendships || []);
     } catch (error) {
       console.error('Failed to load community data', error);
       toast.error('Failed to load community feed');
@@ -223,6 +228,35 @@ export default function CommunityPage() {
     }
   };
 
+  const handleSendFriendRequest = async (targetUserId: string) => {
+    try {
+      await apiClient.sendFriendRequest(targetUserId);
+      toast.success('Friend request sent!');
+      fetchData();
+    } catch (error) {
+      toast.error('Failed to send friend request');
+    }
+  };
+
+  const handleRespondFriendRequest = async (friendshipId: string, action: 'accepted' | 'rejected') => {
+    try {
+      await apiClient.updateFriendRequest(friendshipId, action);
+      toast.success(`Friend request ${action}`);
+      fetchData();
+    } catch (error) {
+      toast.error('Failed to update request');
+    }
+  };
+
+  const handleMessageUser = async (targetUserId: string) => {
+    try {
+      const channel = await apiClient.startDirectMessage(targetUserId);
+      router.push(`/messages?channelId=${channel.id}`);
+    } catch (error) {
+      toast.error('Failed to start conversation');
+    }
+  };
+
   return (
     <div className="h-full flex flex-col space-y-6">
       <PageTitle title="Community & Friends" icon={<Users size={24} />} />
@@ -230,6 +264,7 @@ export default function CommunityPage() {
       <Tabs defaultValue="feed" className="flex-1 flex flex-col h-[calc(100vh-140px)]">
         <TabsList className="w-full justify-start border-b border-border bg-transparent rounded-none h-auto p-0 mb-6">
           <TabsTrigger value="feed" className="data-[state=active]:bg-primary/10 rounded-t-lg rounded-b-none border-b-2 border-transparent data-[state=active]:border-primary px-6 py-3">Global Feed</TabsTrigger>
+          <TabsTrigger value="members" className="data-[state=active]:bg-primary/10 rounded-t-lg rounded-b-none border-b-2 border-transparent data-[state=active]:border-primary px-6 py-3">Members</TabsTrigger>
           <TabsTrigger value="communities" className="data-[state=active]:bg-primary/10 rounded-t-lg rounded-b-none border-b-2 border-transparent data-[state=active]:border-primary px-6 py-3">Custom Communities</TabsTrigger>
         </TabsList>
 
@@ -281,7 +316,7 @@ export default function CommunityPage() {
             <h3 className="font-serif text-xl">Find Friends</h3>
             <ScrollArea className="h-full pr-4">
               <div className="space-y-3 pb-12">
-                {users.map((u) => (
+                {users.filter(u => u.id !== user?.id).map((u) => (
                   <div key={u.id} className="flex items-center justify-between p-3 rounded-lg bg-background/50 border border-white/10 hover:bg-background/80 transition-colors">
                     <div className="flex items-center gap-3 overflow-hidden">
                       <Avatar className="w-9 h-9">
@@ -292,7 +327,7 @@ export default function CommunityPage() {
                         <p className="font-medium text-sm truncate">{u.name || 'User'}</p>
                       </div>
                     </div>
-                    <Button variant="ghost" size="icon" className="shrink-0 rounded-full hover:bg-primary" onClick={() => handleFollow(u.id)}>
+                    <Button variant="ghost" size="icon" className="shrink-0 rounded-full hover:bg-primary" onClick={() => handleSendFriendRequest(u.id)}>
                       <UserPlus className="w-4 h-4" />
                     </Button>
                   </div>
@@ -300,6 +335,71 @@ export default function CommunityPage() {
               </div>
             </ScrollArea>
           </div>
+        </TabsContent>
+
+        <TabsContent value="members" className="flex-1 flex flex-col gap-6 m-0 p-0 h-full">
+          <div className="bg-card p-6 rounded-xl border border-border shadow-sm">
+            <h2 className="text-2xl font-serif font-bold">Community Members</h2>
+            <p className="text-muted-foreground">Connect with fellow readers. Send friend requests or drop them a message.</p>
+          </div>
+          
+          <ScrollArea className="h-full pr-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pb-20">
+              {users.filter(u => u.id !== user?.id).map((u) => {
+                const friendship = friendships.find(f => (f.user1Id === u.id && f.user2Id === user?.id) || (f.user2Id === u.id && f.user1Id === user?.id) || (f.senderId === u.id && f.receiverId === user?.id) || (f.receiverId === u.id && f.senderId === user?.id));
+                const status = friendship?.status;
+                
+                // Account for the two different ways the API might return the IDs (nested or flat depending on if it's the raw query or mapped)
+                const senderId = friendship?.senderId || friendship?.user1Id;
+                
+                const isFriend = status === 'accepted';
+                const isPendingSent = status === 'pending' && senderId === user?.id;
+                const isPendingReceived = status === 'pending' && senderId !== user?.id;
+
+                return (
+                  <Card key={u.id} className="p-5 flex flex-col items-center text-center hover:border-primary/50 transition-colors">
+                    <Avatar className="w-20 h-20 border-2 border-primary/20 mb-4">
+                      <AvatarImage src={u.avatarUrl || `https://avatar.vercel.sh/${u.email}`} />
+                      <AvatarFallback className="text-2xl uppercase">{u.name?.[0] || 'U'}</AvatarFallback>
+                    </Avatar>
+                    <h3 className="font-bold text-lg mb-1">{u.name}</h3>
+                    <p className="text-sm text-muted-foreground mb-6 line-clamp-1">{u.email}</p>
+                    
+                    <div className="mt-auto w-full flex flex-col gap-2">
+                      {isFriend ? (
+                        <Button className="w-full gap-2" variant="default" onClick={() => handleMessageUser(u.id)}>
+                          <MessageCircle className="w-4 h-4" /> Message
+                        </Button>
+                      ) : isPendingSent ? (
+                        <Button className="w-full gap-2" variant="secondary" disabled>
+                          <Clock className="w-4 h-4" /> Request Sent
+                        </Button>
+                      ) : isPendingReceived ? (
+                        <div className="flex gap-2">
+                          <Button className="flex-1 gap-1" variant="default" size="sm" onClick={() => handleRespondFriendRequest(friendship.id, 'accepted')}>
+                            <Check className="w-4 h-4" /> Accept
+                          </Button>
+                          <Button className="flex-1 gap-1" variant="destructive" size="sm" onClick={() => handleRespondFriendRequest(friendship.id, 'rejected')}>
+                            <X className="w-4 h-4" /> Decline
+                          </Button>
+                        </div>
+                      ) : (
+                        <Button className="w-full gap-2" variant="outline" onClick={() => handleSendFriendRequest(u.id)}>
+                          <UserPlus className="w-4 h-4" /> Add Friend
+                        </Button>
+                      )}
+                    </div>
+                  </Card>
+                );
+              })}
+              {users.length <= 1 && (
+                <div className="col-span-full py-20 text-center text-muted-foreground">
+                  <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                  <p>No other members found in the community yet.</p>
+                </div>
+              )}
+            </div>
+          </ScrollArea>
         </TabsContent>
 
         <TabsContent value="communities" className="flex-1 flex flex-col gap-6 m-0 p-0 h-full">

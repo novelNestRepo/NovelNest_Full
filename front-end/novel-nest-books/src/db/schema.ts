@@ -104,6 +104,28 @@ export const channelsRelations = relations(channels, ({ one, many }) => ({
   messages: many(messages),
 }));
 
+export const friendships = pgTable('friendships', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  user1Id: uuid('user1_id').notNull().references(() => users.id), // sender
+  user2Id: uuid('user2_id').notNull().references(() => users.id), // receiver
+  status: text('status').default('pending').notNull(), // pending, accepted, rejected
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const friendshipsRelations = relations(friendships, ({ one }) => ({
+  user1: one(users, {
+    fields: [friendships.user1Id],
+    references: [users.id],
+    relationName: 'user1Friendships',
+  }),
+  user2: one(users, {
+    fields: [friendships.user2Id],
+    references: [users.id],
+    relationName: 'user2Friendships',
+  }),
+}));
+
 export const messagesRelations = relations(messages, ({ one }) => ({
   channel: one(channels, {
     fields: [messages.channelId],
