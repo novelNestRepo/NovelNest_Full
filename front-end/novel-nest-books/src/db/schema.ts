@@ -92,6 +92,27 @@ export const usersRelations = relations(users, ({ many }) => ({
   posts: many(posts),
   postLikes: many(postLikes),
   postComments: many(postComments),
+  messages: many(messages),
+  channels: many(channels),
+}));
+
+export const channelsRelations = relations(channels, ({ one, many }) => ({
+  creator: one(users, {
+    fields: [channels.createdBy],
+    references: [users.id],
+  }),
+  messages: many(messages),
+}));
+
+export const messagesRelations = relations(messages, ({ one }) => ({
+  channel: one(channels, {
+    fields: [messages.channelId],
+    references: [channels.id],
+  }),
+  user: one(users, {
+    fields: [messages.userId],
+    references: [users.id],
+  }),
 }));
 
 export const postsRelations = relations(posts, ({ one, many }) => ({

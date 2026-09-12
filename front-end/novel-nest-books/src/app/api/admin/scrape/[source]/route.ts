@@ -454,12 +454,13 @@ async function scrapeStandardEbooks(query: string, adminId: string, limit: numbe
 
 export async function POST(
   request: Request,
-  { params }: { params: { source: string } }
+  { params }: { params: Promise<{ source: string }> }
 ) {
   try {
     const body = await request.json();
     const { query = '', adminId, limit = 50, hasPdf = false } = body;
-    const sourceParam = params.source;
+    const resolvedParams = await params;
+    const sourceParam = resolvedParams.source;
 
     if (!adminId) {
       return NextResponse.json({ error: 'Unauthorized: adminId required' }, { status: 401 });
@@ -545,7 +546,8 @@ export async function POST(
       books: uniqueBooks,
     });
   } catch (error: any) {
-    console.error(`Scraping error [${params.source}]:`, error);
+    const resolvedParams = await params;
+    console.error(`Scraping error [${resolvedParams.source}]:`, error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

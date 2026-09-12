@@ -4,7 +4,7 @@ import { channels } from '@/db/schema';
 import { supabase } from '@/lib/supabase';
 import { eq } from 'drizzle-orm';
 
-export async function GET(request: Request, context: { params: { id: string } }) {
+export async function GET(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
     const authHeader = request.headers.get('Authorization');
     const token = authHeader?.split(' ')[1];
@@ -25,7 +25,7 @@ export async function GET(request: Request, context: { params: { id: string } })
   }
 }
 
-export async function POST(request: Request, context: { params: { id: string } }) {
+export async function POST(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
     const authHeader = request.headers.get('Authorization');
     const token = authHeader?.split(' ')[1];

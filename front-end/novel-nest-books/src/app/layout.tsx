@@ -8,6 +8,7 @@ import { Toaster } from "@/components/ui/sonner";
 import AppLayout from "@/components/layout/AppLayout";
 import QueryProvider from "@/lib/providers/QueryProvider";
 import NextTopLoader from 'nextjs-toploader';
+import ChatBot from "@/components/custom/ChatBot";
 
 const playfairDisplay = Playfair_Display({
   variable: "--font-playfair-display",
@@ -39,8 +40,9 @@ export default function RootLayout({
           <TooltipProvider>
             <AppLayout>
               {children}
-              <Toaster />
             </AppLayout>
+            <Toaster />
+            <ChatBot />
           </TooltipProvider>
         </QueryProvider>
       </body>

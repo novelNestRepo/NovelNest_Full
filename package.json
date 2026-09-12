@@ -4,7 +4,9 @@
     "dev:frontend": "cd front-end/novel-nest-books && npm run dev",
     "dev:backend": "cd back-end && go run .",
     "dev:realtime": "cd real-time-service && npm run dev",
-    "dev:recommendation": "cd recommendation-service && uvicorn app.main:app --reload --port 8000"
+    "dev:recommendation": "cd recommendation-service && uvicorn app.main:app --reload --port 8000",
+    "build": "npm run build:frontend",
+    "build:frontend": "cd front-end/novel-nest-books && npm run build"
   },
   "devDependencies": {
     "@types/three": "^0.174.0",

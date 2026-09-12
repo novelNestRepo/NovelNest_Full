@@ -4,7 +4,7 @@ import { postLikes } from '@/db/schema';
 import { and, eq } from 'drizzle-orm';
 import { supabase } from '@/lib/supabase';
 
-export async function POST(request: Request, context: { params: { id: string } }) {
+export async function POST(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
     const authHeader = request.headers.get('Authorization');
     const token = authHeader?.split(' ')[1];

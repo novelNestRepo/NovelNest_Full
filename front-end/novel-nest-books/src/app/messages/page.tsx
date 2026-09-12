@@ -182,32 +182,32 @@ export default function Messages() {
                 <div
                   key={message.id}
                   className={`flex items-start gap-2 ${
-                    message.sender_id === user?.id ? "flex-row-reverse" : ""
+                    message.userId === user?.id ? "flex-row-reverse" : ""
                   }`}
                 >
                   <Avatar className="w-8 h-8">
                     <AvatarImage
-                      src={`https://avatar.vercel.sh/${message.sender.email}`}
+                      src={message.user?.avatarUrl || `https://avatar.vercel.sh/${message.user?.email || message.userId}`}
                     />
                     <AvatarFallback>
-                      {message.sender.user_metadata.name?.[0] ||
-                        message.sender.email[0]}
+                      {message.user?.name?.[0] ||
+                        message.user?.email?.[0] || 'U'}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex flex-col gap-1 max-w-[50%]">
                     <div
                       className={`rounded-lg p-2 ${
-                        message.sender_id === user?.id
+                        message.userId === user?.id
                           ? "bg-primary text-primary-foreground"
                           : "bg-muted"
                       }`}
                     >
                       <div className="flex items-center justify-between gap-2">
                         <div className="text-sm font-medium">
-                          {message.sender.user_metadata.name ||
-                            message.sender.email}
+                          {message.user?.name ||
+                            message.user?.email || 'Anonymous'}
                         </div>
-                        {message.sender_id === user?.id && (
+                        {message.userId === user?.id && (
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                               <Button variant="ghost" className="h-8 w-8 p-0">
@@ -239,34 +239,13 @@ export default function Messages() {
                       <div className="text-sm">{message.content}</div>
                       <div className="flex items-center gap-2 mt-1">
                         <div className="text-xs opacity-70">
-                          {new Date(message.created_at).toLocaleTimeString()}
+                          {new Date(message.createdAt).toLocaleTimeString()}
                         </div>
-                        {message.updated_at !== message.created_at && (
+                        {message.updatedAt !== message.createdAt && (
                           <span className="text-xs opacity-70">(edited)</span>
-                        )}
-                        {message.sender_id === user?.id && (
-                          <Badge variant="secondary" className="text-xs">
-                            {message.status}
-                          </Badge>
                         )}
                       </div>
                     </div>
-                    {Object.entries(message.reactions || {}).length > 0 && (
-                      <div className="flex gap-1 mt-1">
-                        {Object.entries(message.reactions).map(
-                          ([emoji, userIds]) => (
-                            <Badge
-                              key={emoji}
-                              variant="secondary"
-                              className="cursor-pointer"
-                              onClick={() => handleAddReaction(message.id, emoji)}
-                            >
-                              {emoji} {Array.isArray(userIds) ? userIds.length : 0}
-                            </Badge>
-                          )
-                        )}
-                      </div>
-                    )}
                   </div>
                 </div>
               ))}

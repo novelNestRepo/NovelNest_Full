@@ -19,7 +19,21 @@ export async function GET(req: Request, { params }: { params: Promise<{ channelI
 
     const { channelId } = await params;
     
-    const channelMessages = await db.select().from(messages).where(eq(messages.channelId, channelId));
+    const channelMessages = await db.query.messages.findMany({
+      where: eq(messages.channelId, channelId),
+      orderBy: (messages, { asc }) => [asc(messages.createdAt)],
+      with: {
+        user: {
+          columns: {
+            id: true,
+            name: true,
+            email: true,
+            avatarUrl: true
+          }
+        }
+      }
+    });
+    
     return NextResponse.json(channelMessages);
   } catch (error: any) {
     return NextResponse.json({ error: 'Failed to fetch messages' }, { status: 500 });
