@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { MessageSquare, X, Send, Bot, User } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useDragControls } from 'framer-motion';
 import Image from 'next/image';
 
 type Message = {
@@ -17,15 +17,16 @@ type Message = {
 export default function ChatBot() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
-    { role: 'assistant', content: "Hi there! I'm NestBot 🤖. I can help you navigate NovelNest or recommend some great books we have available. How can I help?" }
+    { role: 'assistant', content: "Hi there! I'm NestBot... I can help you navigate NovelNest or recommend some great books we have available. How can I help?" }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const dragControls = useDragControls();
 
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    if (isOpen) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages, isLoading, isOpen]);
 
@@ -35,7 +36,7 @@ export default function ChatBot() {
 
     const userMsg: Message = { role: 'user', content: input.trim() };
     const newMessages = [...messages, userMsg];
-    
+
     setMessages(newMessages);
     setInput('');
     setIsLoading(true);
@@ -62,7 +63,13 @@ export default function ChatBot() {
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
+    <motion.div 
+      className="fixed bottom-6 right-6 z-50 flex flex-col items-end"
+      drag
+      dragControls={dragControls}
+      dragListener={false}
+      dragMomentum={false}
+    >
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -74,7 +81,10 @@ export default function ChatBot() {
           >
             <Card className="w-80 sm:w-96 h-[500px] flex flex-col bg-background/80 backdrop-blur-xl border-white/20 shadow-2xl overflow-hidden">
               {/* Header */}
-              <div className="flex items-center justify-between p-4 bg-primary/10 border-b border-white/10">
+              <div 
+                className="flex items-center justify-between p-4 bg-primary/10 border-b border-white/10 cursor-move"
+                onPointerDown={(e) => dragControls.start(e)}
+              >
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 rounded-full flex items-center justify-center overflow-hidden">
                     <Image src="/novelnest.png" alt="NestBot" width={32} height={32} className="object-cover" />
@@ -90,18 +100,22 @@ export default function ChatBot() {
               </div>
 
               {/* Chat Area */}
-              <ScrollArea className="flex-1 p-4" ref={scrollRef}>
+              <div 
+                className="flex-1 p-4 overflow-y-auto"
+                onPointerDownCapture={(e) => e.stopPropagation()}
+                onWheelCapture={(e) => e.stopPropagation()}
+                onTouchStartCapture={(e) => e.stopPropagation()}
+              >
                 <div className="space-y-4">
                   {messages.map((msg, idx) => (
                     <div key={idx} className={`flex gap-2 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
                       <div className={`w-6 h-6 rounded-full flex items-center justify-center overflow-hidden shrink-0 mt-1 ${msg.role === 'user' ? 'bg-secondary' : ''}`}>
                         {msg.role === 'user' ? <User className="w-3 h-3" /> : <Image src="/novelnest.png" alt="NestBot" width={24} height={24} />}
                       </div>
-                      <div className={`text-sm p-3 rounded-2xl max-w-[80%] leading-relaxed ${
-                        msg.role === 'user' 
-                          ? 'bg-primary text-primary-foreground rounded-tr-sm' 
+                      <div className={`text-sm p-3 rounded-2xl max-w-[80%] leading-relaxed ${msg.role === 'user'
+                          ? 'bg-primary text-primary-foreground rounded-tr-sm'
                           : 'bg-muted rounded-tl-sm border border-white/5'
-                      }`}>
+                        }`}>
                         {msg.content}
                       </div>
                     </div>
@@ -118,8 +132,9 @@ export default function ChatBot() {
                       </div>
                     </div>
                   )}
+                  <div ref={messagesEndRef} />
                 </div>
-              </ScrollArea>
+              </div>
 
               {/* Input Area */}
               <form onSubmit={sendMessage} className="p-3 bg-background border-t border-white/10 flex gap-2">
@@ -143,10 +158,11 @@ export default function ChatBot() {
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         onClick={() => setIsOpen(!isOpen)}
-        className="w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-xl flex items-center justify-center hover:bg-primary/90 transition-colors border-2 border-white/10"
+        onPointerDown={(e) => dragControls.start(e)}
+        className="w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-xl flex items-center justify-center hover:bg-primary/90 transition-colors border-2 border-white/10 cursor-move"
       >
         {isOpen ? <X className="w-6 h-6" /> : <MessageSquare className="w-6 h-6" />}
       </motion.button>
-    </div>
+    </motion.div>
   );
 }

@@ -20,7 +20,7 @@ export async function POST(req: Request) {
       author: books.author,
       description: books.description,
       language: books.language
-    }).from(books);
+    }).from(books).limit(20);
 
     // Format the books into a readable string for the LLM
     const bookList = allBooks.map(b => `- "${b.title}" by ${b.author} (Language: ${b.language || 'Unknown'})\n  Description: ${b.description || 'No description available.'}`).join('\n\n');
@@ -40,7 +40,7 @@ Guidelines:
 
     // Construct the payload for Mistral
     const payload = {
-      model: "mistral-small-latest",
+      model: "open-mistral-7b",
       messages: [
         { role: "system", content: systemPrompt },
         ...messages
