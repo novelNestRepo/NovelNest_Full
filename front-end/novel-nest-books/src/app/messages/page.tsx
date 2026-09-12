@@ -151,10 +151,10 @@ export default function Messages() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
         <PageTitle title="Messages" icon={<MessageSquare />} />
         <Select value={selectedChannel} onValueChange={setSelectedChannel}>
-          <SelectTrigger className="w-[200px]">
+          <SelectTrigger className="w-full sm:w-[200px]">
             <SelectValue placeholder="Select a channel" />
           </SelectTrigger>
           <SelectContent>

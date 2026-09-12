@@ -92,7 +92,7 @@ const BookmarksPage = () => {
     <>
       <PageTitle title="Bookmarks" icon={<Bookmark />} />
       <Tabs defaultValue="all" className="w-full" onValueChange={setActiveTab}>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
           <p className="text-muted-foreground">
             Save your favorite pages and chapters for quick access.
           </p>
