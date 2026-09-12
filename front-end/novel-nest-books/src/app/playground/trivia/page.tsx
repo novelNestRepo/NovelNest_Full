@@ -34,7 +34,11 @@ export default function TriviaLobby() {
           </div>
 
           <div className="relative z-10 w-full pt-4">
-            <Button size="lg" className="w-full text-xl py-8 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 border-0 shadow-xl shadow-indigo-500/20 transition-all hover:scale-105">
+            <Button 
+              size="lg" 
+              onClick={() => router.push('/playground/trivia/challenge')}
+              className="w-full text-xl py-8 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 border-0 shadow-xl shadow-indigo-500/20 transition-all hover:scale-105"
+            >
               Start Challenge
             </Button>
             <p className="text-sm text-muted-foreground mt-4">
