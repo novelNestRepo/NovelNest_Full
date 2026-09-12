@@ -346,6 +346,17 @@ class ApiClient {
       body: JSON.stringify(channel),
     });
   }
+
+  // --- Playground / Chess ---
+  async getChessMatches() {
+    return this.request<any[]>('/playground/chess/matches');
+  }
+
+  async createChessMatch() {
+    return this.request<any>('/playground/chess/matches', {
+      method: 'POST',
+    });
+  }
 }
 
 export const apiClient = new ApiClient(API_BASE_URL);
