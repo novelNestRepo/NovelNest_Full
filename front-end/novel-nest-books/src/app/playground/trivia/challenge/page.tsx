@@ -191,6 +191,7 @@ export default function TriviaChallengePage() {
   }
 
   const currentQ = questions[currentIndex];
+  if (!currentQ) return null;
 
   return (
     <div className="h-full flex flex-col space-y-6 max-w-4xl mx-auto">
