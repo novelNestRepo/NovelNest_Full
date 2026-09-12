@@ -165,3 +165,40 @@ export const communityMembers = pgTable('community_members', {
   userId: uuid('user_id').notNull().references(() => users.id),
   joinedAt: timestamp('joined_at').defaultNow().notNull(),
 });
+
+export const tournaments = pgTable('tournaments', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  name: text('name').notNull(),
+  creatorId: uuid('creator_id').notNull().references(() => users.id),
+  status: text('status').default('pending').notNull(), // pending, active, completed
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const tournamentParticipants = pgTable('tournament_participants', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tournamentId: uuid('tournament_id').notNull().references(() => tournaments.id),
+  userId: uuid('user_id').notNull().references(() => users.id),
+  joinedAt: timestamp('joined_at').defaultNow().notNull(),
+});
+
+export const chessMatches = pgTable('chess_matches', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tournamentId: uuid('tournament_id').references(() => tournaments.id),
+  player1Id: uuid('player1_id').notNull().references(() => users.id),
+  player2Id: uuid('player2_id').notNull().references(() => users.id),
+  pgn: text('pgn'), // standard chess notation
+  fen: text('fen'), // current board state
+  status: text('status').default('active').notNull(), // active, completed, drawn, abandoned
+  winnerId: uuid('winner_id').references(() => users.id),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const prizeClaims = pgTable('prize_claims', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id),
+  itemDescription: text('item_description').notNull(),
+  shippingAddress: text('shipping_address').notNull(),
+  status: text('status').default('pending').notNull(), // pending, shipped
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});

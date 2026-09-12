@@ -11,7 +11,8 @@ import {
   Settings,
   MessageSquare,
   ShieldAlert,
-  Users
+  Users,
+  Gamepad2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePathname, useRouter } from "next/navigation";
@@ -54,6 +55,7 @@ export default function Sidebar() {
     if (path.startsWith("/bookmarks")) return "bookmarks";
     if (path.startsWith("/messages")) return "messages";
     if (path.startsWith("/community")) return "community";
+    if (path.startsWith("/playground")) return "playground";
     if (path.startsWith("/profile")) return "profile";
     if (path.startsWith("/admin")) return "admin";
     if (path.startsWith("/settings")) return "settings";
@@ -103,6 +105,11 @@ export default function Sidebar() {
           icon={Users}
           active={getActiveItem() === "community"}
           onClick={() => router.push("/community")}
+        />
+        <SidebarItem
+          icon={Gamepad2}
+          active={getActiveItem() === "playground"}
+          onClick={() => router.push("/playground")}
         />
         <SidebarItem
           icon={MessageSquare}

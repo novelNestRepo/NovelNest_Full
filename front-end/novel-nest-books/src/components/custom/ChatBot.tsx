@@ -8,6 +8,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { MessageSquare, X, Send, Bot, User } from 'lucide-react';
 import { motion, AnimatePresence, useDragControls } from 'framer-motion';
 import Image from 'next/image';
+import ReactMarkdown from 'react-markdown';
 
 type Message = {
   role: 'user' | 'assistant';
@@ -112,11 +113,31 @@ export default function ChatBot() {
                       <div className={`w-6 h-6 rounded-full flex items-center justify-center overflow-hidden shrink-0 mt-1 ${msg.role === 'user' ? 'bg-secondary' : ''}`}>
                         {msg.role === 'user' ? <User className="w-3 h-3" /> : <Image src="/novelnest.png" alt="NestBot" width={24} height={24} />}
                       </div>
-                      <div className={`text-sm p-3 rounded-2xl max-w-[80%] leading-relaxed ${msg.role === 'user'
+                      <div className={`text-sm p-3 rounded-2xl max-w-[80%] leading-relaxed overflow-hidden ${msg.role === 'user'
                           ? 'bg-primary text-primary-foreground rounded-tr-sm'
                           : 'bg-muted rounded-tl-sm border border-white/5'
                         }`}>
-                        {msg.content}
+                        {msg.role === 'user' ? (
+                          <div dir="auto">{msg.content}</div>
+                        ) : (
+                          <div dir="auto">
+                            <ReactMarkdown 
+                              components={{
+                                p: ({node, ...props}) => <p className="mb-2 last:mb-0" {...props} />,
+                                strong: ({node, ...props}) => <strong className="font-bold text-foreground" {...props} />,
+                                em: ({node, ...props}) => <em className="italic" {...props} />,
+                                ul: ({node, ...props}) => <ul className="list-disc pl-6 mb-2 space-y-1" {...props} />,
+                                ol: ({node, ...props}) => <ol className="list-decimal pl-6 mb-2 space-y-1" {...props} />,
+                                li: ({node, ...props}) => <li className="mb-1" {...props} />,
+                                h1: ({node, ...props}) => <h1 className="text-lg font-bold mb-2 mt-4" {...props} />,
+                                h2: ({node, ...props}) => <h2 className="text-base font-bold mb-2 mt-3" {...props} />,
+                                h3: ({node, ...props}) => <h3 className="text-sm font-bold mb-1 mt-2" {...props} />,
+                              }}
+                            >
+                              {msg.content}
+                            </ReactMarkdown>
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}
