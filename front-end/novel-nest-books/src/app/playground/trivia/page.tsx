@@ -29,13 +29,13 @@ export default function TriviaLobby() {
               The Grand Novel Puzzle
             </h1>
             <p className="text-muted-foreground text-lg max-w-lg mx-auto">
-              Test your knowledge of classic and modern literature against Mistral AI. Answer correctly, score a perfect 100%, and win a completely free physical book delivered to your doorstep!
+              Test your knowledge of classic and modern literature. Answer correctly, score a perfect 100%, and win a completely free physical book delivered to your doorstep!
             </p>
           </div>
 
           <div className="relative z-10 w-full pt-4">
-            <Button 
-              size="lg" 
+            <Button
+              size="lg"
               onClick={() => router.push('/playground/trivia/challenge')}
               className="w-full text-xl py-8 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 border-0 shadow-xl shadow-indigo-500/20 transition-all hover:scale-105"
             >

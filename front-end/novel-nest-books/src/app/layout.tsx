@@ -9,6 +9,7 @@ import AppLayout from "@/components/layout/AppLayout";
 import QueryProvider from "@/lib/providers/QueryProvider";
 import NextTopLoader from 'nextjs-toploader';
 import ChatBot from "@/components/custom/ChatBot";
+import { Analytics } from "@vercel/analytics/react";
 
 const playfairDisplay = Playfair_Display({
   variable: "--font-playfair-display",
@@ -40,6 +41,7 @@ export default function RootLayout({
           <TooltipProvider>
             <AppLayout>
               {children}
+              <Analytics />
             </AppLayout>
             <Toaster />
             <ChatBot />
