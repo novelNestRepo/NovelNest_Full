@@ -24,6 +24,15 @@ export default function ChatBot() {
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const dragControls = useDragControls();
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    // Check initially
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     if (isOpen) {
@@ -66,7 +75,7 @@ export default function ChatBot() {
   return (
     <motion.div 
       className="fixed bottom-6 right-6 z-50 flex flex-col items-end"
-      drag
+      drag={!isMobile}
       dragControls={dragControls}
       dragListener={false}
       dragMomentum={false}
@@ -80,11 +89,13 @@ export default function ChatBot() {
             transition={{ duration: 0.2 }}
             className="mb-4"
           >
-            <Card className="w-80 sm:w-96 h-[500px] flex flex-col bg-background/80 backdrop-blur-xl border-white/20 shadow-2xl overflow-hidden">
+            <Card className="w-80 sm:w-96 h-[500px] max-h-[80vh] flex flex-col bg-background/80 backdrop-blur-xl border-white/20 shadow-2xl overflow-hidden">
               {/* Header */}
               <div 
-                className="flex items-center justify-between p-4 bg-primary/10 border-b border-white/10 cursor-move"
-                onPointerDown={(e) => dragControls.start(e)}
+                className={`flex items-center justify-between p-4 bg-primary/10 border-b border-white/10 ${!isMobile ? 'cursor-move' : ''}`}
+                onPointerDown={(e) => {
+                  if (!isMobile) dragControls.start(e);
+                }}
               >
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 rounded-full flex items-center justify-center overflow-hidden">
@@ -179,8 +190,10 @@ export default function ChatBot() {
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         onClick={() => setIsOpen(!isOpen)}
-        onPointerDown={(e) => dragControls.start(e)}
-        className="w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-xl flex items-center justify-center hover:bg-primary/90 transition-colors border-2 border-white/10 cursor-move"
+        onPointerDown={(e) => {
+          if (!isMobile) dragControls.start(e);
+        }}
+        className={`w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-xl flex items-center justify-center hover:bg-primary/90 transition-colors border-2 border-white/10 ${!isMobile ? 'cursor-move' : ''}`}
       >
         {isOpen ? <X className="w-6 h-6" /> : <MessageSquare className="w-6 h-6" />}
       </motion.button>

@@ -384,6 +384,17 @@ class ApiClient {
       method: 'POST',
     });
   }
+
+  async getChessMatch(id: string) {
+    return this.request<any>(`/playground/chess/matches/${id}`);
+  }
+
+  async updateChessMatch(id: string, updates: { fen?: string; pgn?: string; status?: string; winnerId?: string }) {
+    return this.request<any>(`/playground/chess/matches/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(updates),
+    });
+  }
 }
 
 export const apiClient = new ApiClient(API_BASE_URL);
